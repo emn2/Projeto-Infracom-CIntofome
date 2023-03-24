@@ -6,8 +6,8 @@ PORT = 8000
 # Cria o socket do cliente, o primeiro campo informa que a comunicaçãoo é pelo IP e o segundo campo informa o tipo do socket (UDP)
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-#filename = input('Digite o nome do arquivo a ser enviado: ')
-filename = 'example.txt'
+filename = input('Digite o nome do arquivo a ser enviado: ')
+#filename = 'example.txt'
 
 serverAddress = (IP, PORT)
 # Envia o nome do arquivo para o servidor

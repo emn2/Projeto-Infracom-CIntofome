@@ -1,13 +1,21 @@
-import socket 
+import socket
+import functions 
+
+packSize = 1024
 
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8000
 
-# Cria o socket do cliente, o primeiro campo informa que a comunicaçãoo é pelo IP e o segundo campo informa o tipo do socket (UDP)
+#Variáveis para implementação do canal de transmissão confiável rdt3.0
+seq_num = 0
+ack = 0
+esperarAck = 0
+
+# Cria o socket do cliente, o primeiro campo informa que a comunicacao é pelo IP e o segundo campo informa o tipo do socket (UDP)
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-filename = input('Digite o nome do arquivo a ser enviado: ')
-#filename = 'example.txt'
+#filename = input('Digite o nome do arquivo a ser enviado: ')
+filename = 'example.txt'
 
 serverAddress = (IP, PORT)
 # Envia o nome do arquivo para o servidor
@@ -19,18 +27,7 @@ dataSent = []
 # Abre o arquivo para leitura
 with open(filename, 'rb') as f:
     
-    while True:
-        # Lê o próximo bloco de dados
-        data = f.read(1024)
-        dataSent.append(data)
-        
-        # Se o bloco lido for vazio, termina a transmissão
-        if not data:
-            clientSocket.sendto(data ,serverAddress)
-            break
-        
-        # Envia o bloco de dados para o servidor
-        clientSocket.sendto(data ,serverAddress)
+    functions.transmissor(f, clientSocket, serverAddress)
     
     # Aguarda a resposta do servidor
     data, address = clientSocket.recvfrom(1024)

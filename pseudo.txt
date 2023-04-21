@@ -1,0 +1,32 @@
+1 - RDT - Transmissao:
+    Lê arquivo 
+        Cria pacote
+        Adicona número de sequência
+        Adiciona checksum
+        Envia pacote
+        Espera ACK
+        Inicia timer
+
+        Se ACK for corrupto ou ACK for de outro pacote
+            Nada
+        Se timer expirar
+            Reenvia pacotez
+            Reinicia o timer
+        Se ACK for válido
+            Para timer
+            Incrementa número de sequência mod 2
+    
+2 - RDT - Recepção:
+    Espera pacote
+    Se pacote for válido
+        Se pacote for duplicado
+            Envia ACK
+        Se pacote for novo
+            Se pacote for o esperado
+                Escreve
+                Envia ACK
+                Incrementa número de sequência mod 2
+            Se pacote não for o esperado
+                Ignora pacote
+    Se pacote for inválido
+        Ignora pacote

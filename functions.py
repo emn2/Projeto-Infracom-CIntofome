@@ -1,4 +1,5 @@
 import socket 
+from socket import setdefaulttimeout
 
 packSize = 1024
 readSize = packSize - 1 - 2     #seqNum e checksum
@@ -28,8 +29,8 @@ def calculate_checksum(data):  # Form the standard IP-suite checksum
 
 # Retorna True se o pacote estiver corrompido checando o checksum
 def is_corrupt(data):
-    checksum, seq_num, new_data = decodify(data)
-    new_data = seq_num + new_data
+    # checksum, seq_num, new_data = decodify(data)
+    # new_data = seq_num + new_data
     return False
     
 # Retorna o pacote ACK para o número de sequência seq_num
@@ -43,73 +44,96 @@ def decodify(data):
     return checksum, seq_num, data
 
 def codify(seq_num, data):
-    data = seq_num + data
+    data = str(seq_num) + data
     checksum = calculate_checksum(data)
     data = checksum + data
     return data
 
-def transmissor(file, clientSocket, serverAddress):
+def transmissor(filename, clientSocket, serverAddress):
     dataSent = []
-    seq_num = 0
-    with open(file, 'r') as f:
+    seq_num = str(0)
+    with open(filename, 'r') as f:
         while True:
             data = f.read(readSize)
-
+            old_data = data
             # Codifica o pacote
             data = codify(seq_num, data)
-
+            
             # Envia o bloco de dados para o servidor
-            clientSocket.sendto(data, serverAddress)
+            print("Enviando dados para o receptor...")
+            clientSocket.sendto(data.encode(), serverAddress)
             dataSent.append(data)
-            socket.settimeout(timerValue)
+            socket.setdefaulttimeout(timerValue)
 
             # Aguarda a resposta do servidor
-            while True: 
+            while True:
+                print("Aguardando resposta do receptor...")
                 try:
                     data, address = clientSocket.recvfrom(packSize)
+                    print("Recebi resposta do receptor :  {}".format(data.decode()))
+                    data = data.decode()
                     checksum, new_seq_num, new_data = decodify(data)
                     if not is_corrupt(data) and new_seq_num == seq_num:  # Se o pacote não estiver corrompido e for o esperado
+                        print("Pacote ACK não está corrompido e é o esperado")
                         seq_num = str((int(seq_num) + 1) % 2)
+                        #socket.settimeout(None)
                         break
-                except socket.timeout:     
+                except socket.timeout:  
+                    print("Temporizador estourou") 
                     # Reenviando a msg
-                    clientSocket.sendto(data, address)                               # Se estourou o temporizador, reenvia o conteúdo
+                    clientSocket.sendto(data.encode(), address)                               # Se estourou o temporizador, reenvia o conteúdo
                     # Reseta o temporizador
-                    socket.settimeout(timerValue)
+                    socket.setdefaulttimeout(timerValue)
 
-            if not data:
+                if not new_data:
+                    print("Pacote vazio")
+                    socket.setdefaulttimeout(None)
+                    break
+            if not old_data:
+                print("Pacote vazio do final")
                 break
 
+    print("Terminei de enviar os dados")
     return dataSent
 
-def receptor(file, clientSocket, serverAddress):
+def receptor(filename, clientSocket):
     dataRcv = []
-    seq_num = 0
-    with open(file, 'w') as f:
+    seq_num = str(0)
+    addressRcv = None
+    print('Entrei no receptor')
+    with open(filename, 'w') as f:
         while True:
             # Recebe o próximo bloco de dados do servidor
             data, address = clientSocket.recvfrom(packSize)
-            if not is_corrupt(data):                                # Se o pacote não estiver corrompido
-                new_checksum, new_seq_num, new_data = decodify(data)
+            data = data.decode()
+            print("Recebi dados do transmissor :  {}".format(data))
+            addressRcv = address
+            new_checksum, new_seq_num, new_data = decodify(data)
+            if not is_corrupt(data):
+                print('Pacote não está corrompido')                                # Se o pacote não estiver corrompido
                 if len(dataRcv) > 0 and data == dataRcv[-1]:
-                    clientSocket.sendto(get_ack(seq_num), address)
+                    clientSocket.sendto(get_ack(seq_num).encode(), address)
 
-                elif new_seq_num == seq_num:                        # Se o pacote for o esperado, escreve no arquivo
+                elif new_seq_num == seq_num:  
+                    print('Pacote esperado...Escrevendo no arquivo')                        # Se o pacote for o esperado, escreve no arquivo
                     f.write(new_data)
                     dataRcv.append(data)
 
-                    clientSocket.sendto(get_ack(seq_num), address)
+                    clientSocket.sendto(get_ack(seq_num).encode(), address)
                     seq_num = str((int(seq_num) + 1) % 2)
-                else:                                               # Se o pacote não for o esperado, reenvia o último ACK
+                else:                                                 # Se o pacote não for o esperado, reenvia o último ACK
+                    print("Pacote nao eh o esperado")
                     continue
                                                                     # Se o pacote recebido for vazio, termina a recepção
-            if not data:
+            if not new_data:
+                print("Pacote vazio")
                 break
-
-    return dataRcv
+    print("Terminei de receber os dados")
+    return dataRcv, addressRcv
 
 
 def main():
+    # Testagem
     b = bytes("teste", 'ascii')
     data = "teste"
     for byte in b:

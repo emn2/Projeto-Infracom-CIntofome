@@ -13,42 +13,18 @@ serverSocket.bind((IP, PORT))
 print('CINtofome: Servidor Iniciado')
 
 while True:
-    # Armazena o segmento da mensagem e o endereço do cliente 
-    data, clientAddress = serverSocket.recvfrom(1024)
-    print('')
-
-    filename = 'recebido_' + data.decode()
-    print('{} recebido de {}'.format(filename, clientAddress))
-
-    with open(filename, 'wb') as f:
-        while True:
-            # Recebe o próximo pacote de dados
-            data, address = serverSocket.recvfrom(1024)
-
-            # Convertendo os dados de bytes para string
-            dataString = data.decode()
-            print(f'Recebido: {data.decode()}')
-            #dataInt = int(dataString)
-            
-            # Se o pacote recebido for vazio, termina a transmissão
-            if not data:
-                break
-            
-            # Escreve os dados no arquivo
-            f.write(data)
     
+    filename = "exemplo_server.txt"
+    dataRcv, clientAddress = functions.receptor(filename, serverSocket) 
     print("Arquivo recebido com sucesso!")
-    serverSocket.sendto(filename.encode(), clientAddress)
-    print("Iniciando retransmissão do arquivo...")
-    with open(filename, 'rb') as f:        
-        while True:
-            # Lê o próximo bloco de dados
-            data = f.read(1024)
 
-            # Se o bloco estiver vazio termina a transmissão
-            if not data:
-                serverSocket.sendto(data ,clientAddress)
-                break
-        
-            serverSocket.sendto(data, clientAddress)
-    print("Arquivo retransmitido com sucesso!")
+    dataSent = functions.transmissor(filename, serverSocket, clientAddress)
+
+    print("dataRcv: ", dataRcv)
+    print("dataSent: ", dataSent)
+
+    for i in range(len(dataRcv)):
+        if dataRcv[i] != dataSent[i]:
+            print('Erro na transmissão do bloco {}'.format(i))
+        else:
+            print('Bloco {} enviado corretamente'.format(i))

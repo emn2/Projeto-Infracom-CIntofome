@@ -1,0 +1,21 @@
+Digite o nome do arquivo de extensão txt a ser enviado: Enviando dados para o receptor...
+Aguardando resposta do receptor...
+Recebi resposta do receptor :  000ACK
+Pacote ACK não está corrompido e é o esperado
+Enviando dados para o receptor...
+Aguardando resposta do receptor...
+Recebi resposta do receptor :  001ACK
+Pacote ACK não está corrompido e é o esperado
+Pacote vazio do final
+Terminei de enviar os dados
+Entrei no receptor
+Recebi dados do transmissor :  000Este é meu arquivo.
+Pacote não está corrompido
+Pacote esperado...Escrevendo no arquivo
+Recebi dados do transmissor :  001
+Pacote não está corrompido
+Pacote esperado...Escrevendo no arquivo
+Pacote vazio
+Terminei de receber os dados
+Erro na transmissão do bloco 0
+Erro na transmissão do bloco 1

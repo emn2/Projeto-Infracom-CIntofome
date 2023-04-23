@@ -1,9 +1,22 @@
 import socket 
+import random
 from socket import setdefaulttimeout
+import numpy as np
 
 packSize = 1024
 readSize = packSize - 1 - 2     #seqNum e checksum
 timerValue = 1.0
+
+class RandomErrorGenerator:
+    def __init__(self, faultChance):
+        self.faultChance = faultChance
+    
+    def isLost(self):
+        n = np.random.uniform(0, 1)
+        if n < self.faultChance:
+            return True
+        else:
+            return False
 
 def calculate_checksum(data):  # Form the standard IP-suite checksum
     pos = len(data)
@@ -52,8 +65,11 @@ def codify(seq_num, data):
 def transmissor(filename, clientSocket, serverAddress):
     dataSent = []
     seq_num = str(0)
+    REG = RandomErrorGenerator(0.2)
+    
     with open(filename, 'r') as f:
         while True:
+
             data = f.read(readSize)
             old_data = data
             # Codifica o pacote
@@ -61,31 +77,45 @@ def transmissor(filename, clientSocket, serverAddress):
             
             # Envia o bloco de dados para o servidor
             print("Enviando dados para o receptor...")
+
+            isError = REG.isLost()      # Retorna TRUE, caso o pacote tenha sido perdido
+
             clientSocket.sendto(data.encode(), serverAddress)
             dataSent.append(data)
-            socket.setdefaulttimeout(timerValue)
 
+            if isError:                     # Se o pacote for perdido, estoura o temporizador
+                print("Pacote se perdera!")
+                print("data: ", data)
+                socket.setdefaulttimeout(0)
+            else:
+                socket.setdefaulttimeout(timerValue) 
+            
             # Aguarda a resposta do servidor
             while True:
                 print("Aguardando resposta do receptor...")
+                new_data_empty = False
                 try:
                     data, address = clientSocket.recvfrom(packSize)
                     print("Recebi resposta do receptor :  {}".format(data.decode()))
                     data = data.decode()
                     checksum, new_seq_num, new_data = decodify(data)
+                    if not new_data:
+                        new_data_empty = True
                     if not is_corrupt(data) and new_seq_num == seq_num:  # Se o pacote não estiver corrompido e for o esperado
                         print("Pacote ACK não está corrompido e é o esperado")
                         seq_num = str((int(seq_num) + 1) % 2)
                         #socket.settimeout(None)
                         break
-                except socket.timeout:  
+                except socket.timeout:
                     print("Temporizador estourou") 
                     # Reenviando a msg
-                    clientSocket.sendto(data.encode(), address)                               # Se estourou o temporizador, reenvia o conteúdo
+                    clientSocket.sendto(data.encode(), serverAddress)                               # Se estourou o temporizador, reenvia o conteúdo
+                    print("reenviando data: ", data)
+                    
                     # Reseta o temporizador
                     socket.setdefaulttimeout(timerValue)
 
-                if not new_data:
+                if new_data_empty:
                     print("Pacote vazio")
                     socket.setdefaulttimeout(None)
                     break
@@ -105,6 +135,7 @@ def receptor(filename, clientSocket):
         while True:
             # Recebe o próximo bloco de dados do servidor
             data, address = clientSocket.recvfrom(packSize)
+            print("Recebi dados do transm:  {}".format(data))
             data = data.decode()
             print("Recebi dados do transmissor :  {}".format(data))
             addressRcv = address

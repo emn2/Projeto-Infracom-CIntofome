@@ -1,4 +1,5 @@
 import socket 
+import random
 import functions
 
 # Definir o endereco IP e a porta do servidor

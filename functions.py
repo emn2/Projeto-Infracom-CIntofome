@@ -66,7 +66,7 @@ def calculate_checksum(data):  # Form the standard IP-suite checksum
     
     result = result >> 8 | ((result & 0xff) << 8)   # Swap bytes
     #print(result >> 8, result & 0xff)
-   # print(bin(result >> 8), bin(result & 0xff))
+    # print(bin(result >> 8), bin(result & 0xff))
     #print(bin(result))
     #return result
     #TODO

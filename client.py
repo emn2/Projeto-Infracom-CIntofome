@@ -1,39 +1,40 @@
 import socket
 import functions 
+import os
 
-packSize = 1024
+packSize = functions.packSize
 
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8000
 
-#Variáveis para implementação do canal de transmissão confiável rdt3.0
-seq_num = 0
-ack = 0
-esperarAck = 0
+
+functions._print('CINtofome: Cliente Iniciado', "OUT")
 
 # Cria o socket do cliente, o primeiro campo informa que a comunicacao é pelo IP e o segundo campo informa o tipo do socket (UDP)
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+functions._print('Digite o nome do arquivo de extensão ".txt" a ser enviado: ', "OUT")
 
-filename = input('Digite o nome do arquivo de extensão txt a ser enviado: ')
+#filename = input("[INPUT]: ")
+filesFolder = "client files"
+filename = "meuArquivo.txt"
+realFilename = os.path.join(filesFolder, filename)
 
 serverAddress = (IP, PORT)
 
-# Abre o arquivo para leitura
-with open(filename, 'rb') as f:
-    
-    # Arquivo enviado
-    dataSent = functions.transmissor(filename, clientSocket, serverAddress)
-    
-    returnFileName = 'retorno_' + filename
-    dataRcv, serverAddress = functions.receptor(returnFileName, clientSocket)
+# Arquivo enviado
+dataSent = functions.transmissor(realFilename, clientSocket, serverAddress)
 
-    print("dataRcv: ", dataRcv)
-    print("dataSent: ", dataSent)
+returnFileName = 'retorno_' + filename
+returnFileName = os.path.join(filesFolder, returnFileName)
+dataRcv, serverAddress = functions.receptor(returnFileName, clientSocket)
 
-    for i in range(len(dataRcv)):
-        if dataRcv[i] != dataSent[i]:
-            print('Erro na transmissão do bloco {}'.format(i))
-        else:
-            print('Bloco {} enviado corretamente'.format(i))
+#print("dataRcv: ", dataRcv)
+#print("dataSent: ", dataSent)
+
+for i in range(len(dataRcv)):
+    if dataRcv[i] != dataSent[i]:
+        functions._print("Erro na transmissão do bloco {}".format(i), "ERR")
+    else:
+        functions._print("Bloco {} enviado corretamente".format(i))
 
 clientSocket.close()

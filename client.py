@@ -14,9 +14,9 @@ functions._print('CINtofome: Cliente Iniciado', "OUT")
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 functions._print('Digite o nome do arquivo de extensão ".txt" a ser enviado: ', "OUT")
 
-#filename = input("[INPUT]: ")
+filename = input("[INPUT]: ")
 filesFolder = "client files"
-filename = "meuArquivo.txt"
+# filename = "meuArquivo.txt"
 realFilename = os.path.join(filesFolder, filename)
 
 serverAddress = (IP, PORT)

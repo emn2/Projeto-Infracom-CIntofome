@@ -38,4 +38,4 @@ while True:
             functions._print("Erro na transmissão do bloco {}".format(i), "ERR")
         else:
             functions._print("Bloco {} enviado corretamente".format(i))
-    break
+    

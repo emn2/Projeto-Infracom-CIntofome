@@ -1,6 +1,7 @@
 import socket 
 import random
 import functions
+import os
 
 # Definir o endereco IP e a porta do servidor
 IP = socket.gethostbyname(socket.gethostname())
@@ -11,21 +12,30 @@ serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Associar o socket ao endereco e a porta do servidor definidos anteriormente
 serverSocket.bind((IP, PORT))
-print('CINtofome: Servidor Iniciado')
+
+# Pasta com os arquivos
+filesFolder = "server files"
+filename = "server_version.txt"
+realFilename = os.path.join(filesFolder, filename)
+
+
+functions._print('CINtofome: Servidor Iniciado', "OUT")
 
 while True:
     
-    filename = "exemplo_server.txt"
-    dataRcv, clientAddress = functions.receptor(filename, serverSocket) 
-    print("Arquivo recebido com sucesso!")
 
-    dataSent = functions.transmissor(filename, serverSocket, clientAddress)
+    dataRcv, clientAddress = functions.receptor(realFilename, serverSocket)
 
-    print("dataRcv: ", dataRcv)
-    print("dataSent: ", dataSent)
+    dataSent = functions.transmissor(realFilename, serverSocket, clientAddress)
+    # Checa se o arquivo foi enviado corretamente
+    i = 0
+    
+    #print("dataRcv: ", dataRcv)
+    #print("dataSent: ", dataSent)
 
     for i in range(len(dataRcv)):
         if dataRcv[i] != dataSent[i]:
-            print('Erro na transmissão do bloco {}'.format(i))
+            functions._print("Erro na transmissão do bloco {}".format(i), "ERR")
         else:
-            print('Bloco {} enviado corretamente'.format(i))
+            functions._print("Bloco {} enviado corretamente".format(i))
+    break

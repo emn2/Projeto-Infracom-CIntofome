@@ -7,16 +7,15 @@ packSize = functions.packSize
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8000
 
-
 functions._print('CINtofome: Cliente Iniciado', "OUT")
 
 # Cria o socket do cliente, o primeiro campo informa que a comunicacao é pelo IP e o segundo campo informa o tipo do socket (UDP)
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-functions._print('Digite o nome do arquivo de extensão ".txt" a ser enviado: ', "OUT")
+#functions._print('Digite o nome do arquivo de extensão ".txt" a ser enviado: ', "OUT")
 
 filename = input("[INPUT]: ")
 filesFolder = "client files"
-# filename = "meuArquivo.txt"
+#filename = "meuArquivo.txt"
 realFilename = os.path.join(filesFolder, filename)
 
 serverAddress = (IP, PORT)

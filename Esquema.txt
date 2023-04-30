@@ -1,0 +1,128 @@
+CHEFIA : 0
+CARDAPIO : 1
+PEDIDO : 2
+CONTA INDIVIDUAL : 3
+CONTA DA MESA : 4
+PAGAR : 5
+LEVANTAR DA MESA : 6
+
+- 0:
+    - Cliente envia: 0, ID = tuple(CPF, Nome), Mesa = int
+    - Servidor envia:
+        - ACK
+- 1:
+    - Cliente envia: 1
+    - Servidor envia:
+        - ACK
+        - Cardapio (Lista de (int, String, float))
+- 2:
+    - Cliente envia: 2, Pedido = int
+    - Servidor envia:
+        - ACK
+- 3:
+    - Cliente envia: 3
+    - Servidor envia:
+        - ACK
+        - Valor da conta individual = float
+- 4:
+    - Cliente envia: 4
+    - Servidor envia:
+        - ACK
+        - Valor da conta da mesa = float
+- 5:
+    - Cliente envia: 5, Valor = float
+    - Servidor envia:
+        - ACK
+        - Se o valor for menor que o valor da conta individual ou maior que o valor da conta da mesa:
+            - Mensagem de erro (String)
+        - Senao:
+            - Booleano de que a conta foi paga (Boolean)
+            - Se a conta da mesa for 0:
+                - Boolean de que a conta da mesa foi fechada (Boolean)
+- 6:
+    - Cliente envia: 6
+    - Servidor envia:
+        - ACK
+
+Servidor:
+Cria Thread de Recepcao
+Cria Thread de Transmissao
+    Cria tabela que registra as mesas: 'ID','Mesa', 'ContaIndv', 'Socket'(IP e Porta do Cliente)
+    Loop 1:
+    - Se receber 0:
+        - Recepcao:
+            - Adiciona o cliente na tabela de clientes.
+            - Envia ACK
+            - Retorna para loop 1
+    - Se receber 1:
+        - Recepcao:
+            - Adiciona o request na fila para transmissao.
+            - Envia ACK
+            - Retorna para loop 1
+        - Transmissao:
+            - Envia o cardapio para o cliente.
+    - Se receber 2:
+        - Recepcao:
+            - Adiciona o request na fila para transmissao.
+            - Envia ACK
+            - Retorna para loop 1
+    - Se receber 3:
+        - Recepcao:
+            - Adiciona o request na fila para transmissao.
+            - Envia ACK
+            - Retorna para loop 1
+        - Transmissao:
+            - Envia o valor da conta individual para o cliente.
+    - Se receber 4:
+        - Recepcao:
+            - Adiciona o request na fila para transmissao.
+            - Envia ACK
+            - Retorna para loop 1
+        - Transmissao:
+            - Envia o valor da conta da mesa para o cliente.
+    - Se receber 5:
+        - Recepcao:
+            - Adiciona o request na fila para transmissao.
+            - Envia ACK
+            - Retorna para loop 1
+        - Transmissao:
+            - Se o valor for menor que o valor da conta individual ou maior que o valor da conta da mesa:
+                - Envia uma mensagem de erro.
+            - Senao:
+                - Subtrai da conta da mesa o valor da conta.
+                - Envia uma mensagem de que a conta foi paga.
+                - Se a conta da mesa for 0:
+                    - Envia tambem dentro da mensagem a informacao de que a conta da mesa foi fechada.
+        
+    - Se receber 6:
+        - Recepcao:
+            - Remove o cliente da tabela de clientes.
+            - Envia ACK
+
+(como fazer com que os clientes tenha ids diferentes?)
+Cliente:
+    Envia 0 para o server com as identificacoes do cliente.
+    Espera a mensagem com as opcoes que vira do Servidor
+    Envia o numero da opcao desejada (loop 1)
+        - Se enviar 1:
+            -Recebe uma mensagem do servidor com o cardapio
+            - Volta ao loop 1
+        - Se enviar 2:
+            - Envia o numero do pedido ao servidor
+            - Volta ao loop 1
+        - Se enviar 3:
+            - Recebe uma mensagem do servidor com o valor da conta individual
+            - Volta ao loop 1
+        - Se enviar 4:
+            - Recebe uma mensagem do servidor com o valor da conta da mesa
+            - Volta ao loop 1
+        - Se enviar 5:
+            - Recebe uma mensagem de que a conta individual foi fechada
+            - Se a ultima pessoa da mesa, pagar a conta
+                - Recebe uma mensagem de que a conta da mesa foi fechada
+            - Volta ao loop 1
+        - Se enviar 6: 
+            - Sai da mesa.
+            - Precisa chamar um "CHEFIA" novamente caso queira pedir.
+    
+    

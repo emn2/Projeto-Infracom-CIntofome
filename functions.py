@@ -42,7 +42,7 @@ def _print(msg, tp = None):
         print("{:<3}".format("OK"))
     else:
         print("{:<3}".format(tp))
-    #time.sleep(0.3)
+    time.sleep(0.3)
 
 # ----------------------- Checksum ----------------------------- #
 
@@ -192,7 +192,6 @@ def receptor(filename, clientSocket):
     _print("Iniciando recepção de {}".format(filename), "OUT")
     _print("Receptor : {}".format(clientSocket.getsockname()), "OUT")
     _print("--------------------------------------------", "OUT")
-
     
     clientSocket.settimeout(None)
     with open(filename, 'w') as f:
@@ -237,7 +236,6 @@ def receptor(filename, clientSocket):
     _print("Recepção Finalizada! {} pacotes => {} bytes recebidos.".format(packIdx, sum([len(s) for s in dataRcv])), "OUT")
     _print("--------------------------------------------", "OUT")
     return dataRcv, addressRcv
-
 
 def main():
     # Testagem

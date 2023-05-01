@@ -45,50 +45,51 @@ LEVANTAR DA MESA : 6
         - ACK
 
 Servidor:
-Cria Thread de Recepcao
-Cria Thread de Transmissao
-    Cria tabela que registra as mesas: 'ID','Mesa', 'ContaIndv', 'Socket'(IP e Porta do Cliente)
+Cria Thread de Recepcao (todo)
+Cria Thread de Transmissao (todo)
+    Cria tabela que registra as mesas: 'ID','Mesa', 'ContaIndv', 'Socket'(IP e Porta do Cliente) (done)
     Loop 1:
     - Se receber 0:
         - Recepcao:
-            - Adiciona o cliente na tabela de clientes.
-            - Envia ACK
-            - Retorna para loop 1
+            - Adiciona o cliente na tabela de clientes. (done)
+            - Envia ACK (done)
+            - Retorna para loop 1 (done)
     - Se receber 1:
         - Recepcao:
-            - Adiciona o request na fila para transmissao.
+            - Adiciona o request na fila para transmissao. (done)
             - Envia ACK
             - Retorna para loop 1
         - Transmissao:
-            - Envia o cardapio para o cliente.
+            - Envia o cardapio para o cliente. (done)
     - Se receber 2:
         - Recepcao:
-            - Adiciona o request na fila para transmissao.
+            - Adiciona o request na fila para transmissao.(done)
+            - Adiciona valor do pedido na conta individual do json.(todo)
             - Envia ACK
             - Retorna para loop 1
     - Se receber 3:
         - Recepcao:
-            - Adiciona o request na fila para transmissao.
+            - Adiciona o request na fila para transmissao.(done)
             - Envia ACK
             - Retorna para loop 1
         - Transmissao:
-            - Envia o valor da conta individual para o cliente.
+            - Envia o valor da conta individual para o cliente. (done)
     - Se receber 4:
         - Recepcao:
-            - Adiciona o request na fila para transmissao.
+            - Adiciona o request na fila para transmissao. (done)
             - Envia ACK
             - Retorna para loop 1
         - Transmissao:
-            - Envia o valor da conta da mesa para o cliente.
+            - Envia o valor da conta da mesa para o cliente. (done)
     - Se receber 5:
         - Recepcao:
-            - Adiciona o request na fila para transmissao.
+            - Adiciona o request na fila para transmissao. (done)
             - Envia ACK
             - Retorna para loop 1
         - Transmissao:
             - Se o valor for menor que o valor da conta individual ou maior que o valor da conta da mesa:
-                - Envia uma mensagem de erro.
-            - Senao:
+                - Envia uma mensagem de erro. (todo)
+            - Senao: (todo/done)
                 - Subtrai da conta da mesa o valor da conta.
                 - Envia uma mensagem de que a conta foi paga.
                 - Se a conta da mesa for 0:
@@ -96,7 +97,7 @@ Cria Thread de Transmissao
         
     - Se receber 6:
         - Recepcao:
-            - Remove o cliente da tabela de clientes.
+            - Remove o cliente da tabela de clientes. (done)
             - Envia ACK
 
 (como fazer com que os clientes tenha ids diferentes?)

@@ -7,33 +7,58 @@ packSize = functions.packSize
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8000
 
-functions._print('CINtofome: Cliente Iniciado', "OUT")
-
 # Cria o socket do cliente, o primeiro campo informa que a comunicacao é pelo IP e o segundo campo informa o tipo do socket (UDP)
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#functions._print('Digite o nome do arquivo de extensão ".txt" a ser enviado: ', "OUT")
-
-filename = input("[INPUT]: ")
 filesFolder = "client files"
-#filename = "meuArquivo.txt"
-realFilename = os.path.join(filesFolder, filename)
-
 serverAddress = (IP, PORT)
 
-# Arquivo enviado
-dataSent = functions.transmissor(realFilename, clientSocket, serverAddress)
 
-returnFileName = 'retorno_' + filename
-returnFileName = os.path.join(filesFolder, returnFileName)
-dataRcv, serverAddress = functions.receptor(returnFileName, clientSocket)
+def run_client():
+    #TODO: Alterar envio e recepção para strings
+    # Envia o 0
+    while True:
+        option = input("Digite a opção desejada:")
+        match option:
+            case 1:
+                toSendData = "1"
+                dataSent = functions.transmissor(toSendData, clientSocket, serverAddress)
+                dataRcv, serverAddress = functions.receptor(clientSocket)
+                print("Cardápio: {}".format(dataRcv))
 
-#print("dataRcv: ", dataRcv)
-#print("dataSent: ", dataSent)
+            case 2:
+                toSendData = "2"
+                pedido = input("Digite o número do pedido: ")
+                toSendData = toSendData + pedido
+                dataSent = functions.transmissor(toSendData, clientSocket, serverAddress)
+                dataRcv, serverAddress = functions.receptor(clientSocket)
+                print("{}".format(dataRcv))
 
-for i in range(len(dataRcv)):
-    if dataRcv[i] != dataSent[i]:
-        functions._print("Erro na transmissão do bloco {}".format(i), "ERR")
-    else:
-        functions._print("Bloco {} enviado corretamente".format(i))
+            case 3:
+                toSendData = "3"
+                dataSent = functions.transmissor(toSendData, clientSocket, serverAddress)
+                dataRcv, serverAddress = functions.receptor(clientSocket)
+                print("Conta Individual: {}".format(dataRcv))
+
+            case 4:
+                toSendData = "4"
+                dataSent = functions.transmissor(toSendData, clientSocket, serverAddress)
+                dataRcv, serverAddress = functions.receptor(clientSocket)
+                print("Conta da Mesa: {}".format(dataRcv))
+
+            case 5:
+                toSendData = "5"
+                valor = input("Digite o valor a ser pago: ")
+                toSendData = toSendData + valor
+                dataSent = functions.transmissor(toSendData, clientSocket, serverAddress)
+                dataRcv, serverAddress = functions.receptor(clientSocket)
+                print("{}".format(dataRcv))
+
+            case 6:
+                toSendData = "6"
+                dataSent = functions.transmissor(toSendData, clientSocket, serverAddress)
+                dataRcv, serverAddress = functions.receptor(clientSocket)
+                print("{}".format(dataRcv))
+                break
 
 clientSocket.close()
+    

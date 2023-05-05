@@ -9,7 +9,7 @@ packSize = 1024
 readSize = packSize - 1 - 2     #seqNum e checksum
 timerValue = 0.2
 failRateReceiver = 0.1
-failRateSender = 0.7
+failRateSender = 0.1
 
 class RandomErrorGenerator:
     def __init__(self, faultChance):
@@ -33,6 +33,7 @@ def print_helper():
 
 print_generator = print_helper()
 def _print(msg, tp = None):
+    return
     old_msg = msg
     msg = msg[:62] + ("[..]" if len(old_msg) > 62 else "")
     msg = msg[0].upper() + msg[1:]
@@ -112,7 +113,7 @@ def transmissor(filename, clientSocket, serverAddress):
     seq_num = str(0)
     packIdx = 0
     REG = RandomErrorGenerator(failRateSender)
-    print("\n")
+    # print("\n")
     _print("Iniciando transmissão de {}".format(filename), "OUT")
     _print("Receptor : {}".format(serverAddress), "OUT")
     _print("--------------------------------------------", "OUT")
@@ -188,7 +189,7 @@ def receptor(filename, clientSocket):
     packIdx = 0
     REG = RandomErrorGenerator(failRateReceiver)
 
-    print("\n")
+    # print("\n")
     _print("Iniciando recepção de {}".format(filename), "OUT")
     _print("Receptor : {}".format(clientSocket.getsockname()), "OUT")
     _print("--------------------------------------------", "OUT")

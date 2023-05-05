@@ -4,6 +4,7 @@ import datetime
 import time
 from socket import setdefaulttimeout
 import numpy as np
+import os
 
 packSize = 1024
 readSize = packSize - 1 - 2     #seqNum e checksum
@@ -33,7 +34,8 @@ def print_helper():
 
 print_generator = print_helper()
 def _print(msg, tp = None):
-    return
+    if tp != "OUT":
+        return
     old_msg = msg
     msg = msg[:62] + ("[..]" if len(old_msg) > 62 else "")
     msg = msg[0].upper() + msg[1:]
@@ -43,7 +45,7 @@ def _print(msg, tp = None):
         print("{:<3}".format("OK"))
     else:
         print("{:<3}".format(tp))
-    time.sleep(0.3)
+    #time.sleep(0.3)
 
 # ----------------------- Checksum ----------------------------- #
 
@@ -108,16 +110,22 @@ def codify(seq_num, data):
 
 # -------------------------------------------------------------- #
 
-def transmissor(filename, clientSocket, serverAddress):
+def transmissor(file, clientSocket, serverAddress):
     dataSent = []
     seq_num = str(0)
     packIdx = 0
     REG = RandomErrorGenerator(failRateSender)
     # print("\n")
-    _print("Iniciando transmissão de {}".format(filename), "OUT")
-    _print("Receptor : {}".format(serverAddress), "OUT")
-    _print("--------------------------------------------", "OUT")
+    
+    filename = "./temp_files/tempt{}.txt".format(clientSocket.getsockname()[1])
+    _print("Iniciando transmissão de {}".format(filename), "NOUT")
+    _print("Receptor : {}".format(serverAddress), "NOUT")
+    _print("--------------------------------------------", "NOUT")
     clientSocket.settimeout(timerValue)
+    
+    with open(filename, 'w') as f:
+        f.write(file)
+    
     with open(filename, 'rb') as f:
         while True:
 
@@ -173,37 +181,44 @@ def transmissor(filename, clientSocket, serverAddress):
                     else:
                         clientSocket.sendto(data.encode(), serverAddress)   # Se estourou o temporizador, reenvia o conteúdo
                                                 
-            _print("............................................", "OUT")
+            _print("............................................", "NOUT")
             packIdx += 1
             if not readData:
                 break
-
-    _print("Transmissão Finalizada! {} pacotes => {} bytes enviados.".format(packIdx, sum([len(s) for s in dataSent])), "OUT")
-    _print("--------------------------------------------", "OUT")
+    _print("Transmissão Finalizada! {} pacotes => {} bytes enviados.".format(packIdx, sum([len(s) for s in dataSent])), "NOUT")
+    _print("--------------------------------------------", "NOUT")
+    # Delete the temporary file
+    os.remove(filename)
+    dataSent = "".join(dataSent)
     return dataSent
 
-def receptor(filename, clientSocket):
+def receptor(clientSocket):
     dataRcv = []
     seq_num = str(0)
     addressRcv = None
     packIdx = 0
     REG = RandomErrorGenerator(failRateReceiver)
 
-    # print("\n")
-    _print("Iniciando recepção de {}".format(filename), "OUT")
-    _print("Receptor : {}".format(clientSocket.getsockname()), "OUT")
-    _print("--------------------------------------------", "OUT")
+    filename = "./temp_files/tempr{}.txt".format(clientSocket.getsockname()[1])
+    _print("Iniciando recepção de {}".format(filename), "NOUT")
+    _print("Receptor : {}".format(clientSocket.getsockname()), "NOUT")
+    _print("--------------------------------------------", "NOUT")
     
     clientSocket.settimeout(None)
     with open(filename, 'w') as f:
         while True:
             # Recebe o próximo bloco de dados do servidor
-            data, address = clientSocket.recvfrom(packSize)
+            try:
+                data, address = clientSocket.recvfrom(packSize)
+            except:
+                continue
             _print("Recebido o pacote nº {} de {} bytes do transmissor".format(packIdx, len(data)))
             
             data = data.decode()
             addressRcv = address
             new_checksum, new_seq_num, new_data = decodify(data)
+            if not new_data and len(dataRcv) == 0:
+                continue
             isError = REG.isLost()          # Retorna TRUE, caso o pacote tenha sido perdido
             if not new_data:
                 isError = False
@@ -222,6 +237,7 @@ def receptor(filename, clientSocket):
                     _print("Pacote nº {} é o esperado. Escrevendo no arquivo...".format(packIdx))
                     f.write(new_data)
                     dataRcv.append(data)
+                    # print(dataRcv)
                     if isError:                     # Se o pacote for perdido, estoura o temporizador
                         _print("ACK para o pacote nº {} se perdera!".format(packIdx), "ERR")
                     else:
@@ -231,11 +247,14 @@ def receptor(filename, clientSocket):
                     _print("Pacote nº {} não é o esperado : EXP: {} != RCV : {}.".format(packIdx, seq_num, new_seq_num), "ERR")
                                                                     # Se o pacote recebido for vazio, termina a recepção
             packIdx += 1
-            _print("............................................", "OUT")
+            _print("............................................", "NOUT")
             if not new_data:
                 break
-    _print("Recepção Finalizada! {} pacotes => {} bytes recebidos.".format(packIdx, sum([len(s) for s in dataRcv])), "OUT")
-    _print("--------------------------------------------", "OUT")
+    _print("Recepção Finalizada! {} pacotes => {} bytes recebidos.".format(packIdx, sum([len(s) for s in dataRcv])), "NOUT")
+    _print("--------------------------------------------", "NOUT")
+    dataRcv = [i[3:] for i in dataRcv]
+    dataRcv = "".join(dataRcv)
+    os.remove(filename)
     return dataRcv, addressRcv
 
 def main():

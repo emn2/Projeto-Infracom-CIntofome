@@ -5,19 +5,7 @@ import random
 import functions
 import os
 
-def startThreads():
-    thread_Receiver = threading.Thread(target = CINtofomeReceiver)
-    thread_Receiver.start()
 
-    thread_Sender = threading.Thread(target = CINtofomeSender)
-    thread_Sender.start()
-
-def main():
-    print("Iniciando as threads...")
-    startThreads()
-
-if __name__ == "__main__":
-    main()
     
 # Definir o endereco IP e a porta do servidor
 IP = socket.gethostbyname(socket.gethostname())
@@ -33,7 +21,7 @@ serverSocket.bind((IP, PORT))
 filesFolder = "server files"
 filename = "clientTable.json"
 
-realFilename = os.path.join(filesFolder, filename)
+tableFilename = os.path.join(filesFolder, filename)
 
 # Fila com requests
 requestQueue = []
@@ -46,37 +34,37 @@ menuList = [(0, "Brigadeiro", 1.50),
             (4, "Palha Italiana", 4.00),
             (5, "Agua Voss Sem Gas", 59.90)]
 
-functions._print('CINtofome: Servidor Iniciado', "OUT")
+functions._print("CInToFome Server is running on IP: {} and PORT: {}".format(IP, PORT), "OUT")
 
-def addClient(new_client):  # Adiciona cliente // testado e funcionando
+def addClient(new_client, clientSocket):  # Adiciona cliente // testado e funcionando
     new_client = {
         "name": new_client[0],
         "mesa": new_client[1],
         "conta individual": 0.0,
-        "socket" : new_client[2],
+        "socket" : clientSocket,
         "pedidos" : []
     }
 
-    with open(realFilename, 'r+') as file:
+    with open(tableFilename, 'r+') as file:
         file_data = json.load(file)
         file_data['clients'].append(new_client)
         file.seek(0)
         json.dump(file_data, file, indent = 4)
 
-def deleteClient(clientAddress): # Deleta o cliente solicitado // testado e funcionando
-    obj  = json.load(open(realFilename))
+def deleteClient(clientAddress):                # Deleta o cliente solicitado // testado e funcionando
+    obj  = json.load(open(tableFilename))
                                                  
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["socket"] == clientAddress:
             obj["clients"].pop(i)
             break
                                
-    open(realFilename, "w").write(
+    open(tableFilename, "w").write(
         json.dumps(obj, sort_keys = True, indent = 4, separators = (',', ': '))
     )
 
-def addOrder(clientAddress, order):  #Adiciona o novo pedido do cliente // testado e funcionando
-    obj  = json.load(open(realFilename))
+def addOrder(clientAddress, order):             # Adiciona o novo pedido do cliente // testado e funcionando
+    obj  = json.load(open(tableFilename))
                                                  
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["socket"] == clientAddress:
@@ -84,12 +72,12 @@ def addOrder(clientAddress, order):  #Adiciona o novo pedido do cliente // testa
             obj["clients"][i]["conta individual"] += menuList[order][2]
             break
 
-    open(realFilename, "w").write(
+    open(tableFilename, "w").write(
         json.dumps(obj, sort_keys = True, indent = 4, separators = (',', ': '))
     )
 
-def getClientOrders(clientAddress): # Pega a conta individual do cliente // testado e funcionando
-    obj = json.load(open(realFilename))
+def getClientOrders(clientAddress):             # Pega a conta individual do cliente // testado e funcionando
+    obj = json.load(open(tableFilename))
     
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["socket"] == clientAddress:
@@ -99,18 +87,19 @@ def getClientOrders(clientAddress): # Pega a conta individual do cliente // test
 
     return (-1, [])
 
-def getTableOrders(numberTable): # Pega a conta da mesa   // testado e funcionando
-    obj = json.load(open(realFilename))
+def getTableOrders(numberTable):                # Pega a conta da mesa   // testado e funcionando
+    obj = json.load(open(tableFilename))
     
     pedidosDaMesa = []
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["mesa"] == numberTable:
-            pedidosDaMesa.append((obj["clients"][i]["name"], obj["clients"][i]["pedidos"], obj["clients"][i]['conta individual']))
-            # exemplo.append(clientAdress, getClientbill(clientAdress))
+            pedidosDaMesa.append((obj["clients"][i]["name"], 
+                                  obj["clients"][i]["pedidos"], 
+                                  obj["clients"][i]['conta individual']))
     return pedidosDaMesa
 
-def getClientTable(clientAddress):   #Pega o numero da mesa que o cliente esta sentado // testado e funcionando
-    obj = json.load(open(realFilename))
+def getClientTable(clientAddress):              # Pega o numero da mesa que o cliente esta sentado // testado e funcionando
+    obj = json.load(open(tableFilename))
     
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["socket"] == clientAddress:
@@ -164,19 +153,19 @@ def getTableBill(pedidosDaMesa):            # testado e funcionando
     return total
 
 def payClientBill(clientAddress):               # testado e funcionando
-    obj = json.load(open(realFilename))
+    obj = json.load(open(tableFilename))
     
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["socket"] == clientAddress:
             obj["clients"][i]["pedidos"] = []
             break
     
-    open(realFilename, "w").write(
+    open(tableFilename, "w").write(
         json.dumps(obj, sort_keys = True, indent = 4, separators = (',', ': '))
     )
     
 def getTableSize(numberTable): # Pega a quantidade de pessoas na mesa
-    obj = json.load(open(realFilename))
+    obj = json.load(open(tableFilename))
     size = 0
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["mesa"] == numberTable:
@@ -185,112 +174,124 @@ def getTableSize(numberTable): # Pega a quantidade de pessoas na mesa
     return size
 
 def applyDiscount(numberTable, clientAddress, discount): # Pega a quantidade de pessoas na mesa
-    obj = json.load(open(realFilename))
+    obj = json.load(open(tableFilename))
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["mesa"] == numberTable and obj["clients"][i]["socket"] != clientAddress:
             obj["clients"][i]["conta individual"] -= discount
 
-    open(realFilename, "w").write(
+    open(tableFilename, "w").write(
         json.dumps(obj, sort_keys = True, indent = 4, separators = (',', ': '))
     )
 
 def readMessage(data):
+    print("Recebido: ", data)
     data = json.loads(data)
-    return int(data[0]), data[1]
+    return data[0], data[1:]
 
 def CINtofomeReceiver(serverSocket):
     global requestQueue
     
     while True:
-        #TODO: Converter dataRcv para string
-        dataRcv, clientAddress = functions.receptor(realFilename, serverSocket)
+        while len(requestQueue) > 0:
+            continue
+        dataRcv, clientAddress = functions.receptor(serverSocket)
         msgType, msgContent = readMessage(dataRcv)   
+        match msgType:
+            case 0:         # CHEFIA -> OK
+                addClient(msgContent, str(clientAddress[0]) + ":" + str(clientAddress[1]))   # Adiciona o cliente na tabela de clientes.
+                toSendData = """Bem vindo ao restaurante, o que deseja fazer?\n
+                              1 - Ver cardápio.\n
+                              2 - Fazer pedido.\n
+                              3 - Pedir conta.\n
+                              4 - Pedir conta da mesa.\n
+                              5 - Pagar conta.\n
+                              6 - Sair da mesa.\n""" 
+                toSendData = json.dumps((msgType, toSendData))       
+                requestQueue.append((toSendData, clientAddress))                
+            case 1:         # CARDAPIO 
+                toSendData = json.dumps((msgType, menuList))                    # Cliente : Usar loads para transformar em lista
+                requestQueue.append((toSendData, clientAddress))
+                
+            case 2:         # PEDIDO -> OK
+                toSendData = "Gostaria de mais algum item? (número)"
+                toSendData = json.dumps((msgType, toSendData))                   
+                requestQueue.append((toSendData, clientAddress))
+                ip, port = clientAddress
+                order = int(msgContent[0])
+                addOrder(str(ip) + ":" + str(port), order)
+                
+            case 3:         # CONTA INDIVIDUAL
+                ip, port = clientAddress
+                clientStringAddress = str(ip) + ":" + str(port)
+                billValueClient, pedidosDoCliente = getClientOrders(clientStringAddress)
+                toSendData = json.dumps((msgType, billValueClient))
+                requestQueue.append((toSendData, clientAddress))
+                
+                showClientBill(pedidosDoCliente, billValueClient)
+                
+            case 4:         # CONTA DA MESA
+                # Adiciona o request na fila para transmissao.
+                ip, port = clientAddress
+                clientStringAddress = str(ip) + ":" + str(port)
+                clientTable = getClientTable(clientStringAddress)
+                pedidosDaMesa = getTableOrders(clientTable)           # Ler o valor da conta da mesa no JSON
+                billValue = getTableBill(pedidosDaMesa)
+                showTableBill(pedidosDaMesa)
+                toSendData = json.dumps((msgType, billValue))
+                requestQueue.append((toSendData, clientAddress))
+                
+            case 5:         # PAGAR
+                paidValue = float(msgContent[0])                                   # Ler o valor pago pelo cliente
 
-        while True:
-            match msgType:
-                case 0:         # CHEFIA -> OK
-                    addClient(msgContent)                                           # Adiciona o cliente na tabela de clientes.
-                    toSendData = "Bem vindo ao restaurante, o que deseja fazer?"    
-                    requestQueue.append((toSendData, clientAddress))                
-                case 1:         # CARDAPIO 
-                    # Adiciona o request na fila para transmissao.
-                    toSendData = json.dumps((msgType, menuList))                    # Cliente : Usar loads para transformar em lista
-                    requestQueue.append((toSendData, clientAddress))
-                    
-                case 2:         # PEDIDO -> OK
-                    # Adiciona o pedido na tabela do cliente.
-                    toSendData = "Gostaria de mais algum item? (número / nao)"                    
-                    requestQueue.append((toSendData, clientAddress))
-                    ip, port = clientAddress
-                    order = int(msgContent)
-                    addOrder(str(ip) + ":" + str(port), order)
-                    while True:
-                                         
-                        # Receber
-                        break
-                        if(msgContent == "nao"):
-                            break
-                        order = int(msgContent)
-                        addOrder(str(ip) + ":" + str(port), order)
-                    
-                case 3:         # CONTA INDIVIDUAL
-                    ip, port = clientAddress
-                    clientStringAddress = str(ip) + ":" + str(port)
-                    billValueClient, pedidosDoCliente = getClientOrders(clientStringAddress)
-                    toSendData = json.dumps((msgType, billValue))
-                    requestQueue.append((toSendData, clientAddress))
-                    #falta criar função de descontar o valor que já foi pago por outro cliente
-                    #criar função showClientBill
-                    showClientBill(pedidosDoCliente, billValueClient)
-                    
-                case 4:         # CONTA DA MESA
-                    # Adiciona o request na fila para transmissao.
-                    ip, port = clientAddress
-                    clientStringAddress = str(ip) + ":" + str(port)
-                    clientTable = getClientTable(clientStringAddress)
-                    pedidosDaMesa = getTableOrders(clientTable)           # Ler o valor da conta da mesa no JSON
-                    billValue = getTableBill(pedidosDaMesa)
-                    showTableBill(pedidosDaMesa)
-                    toSendData = json.dumps((msgType, billValue))
-                    requestQueue.append((toSendData, clientAddress))
-                    
-                case 5:         # PAGAR
-                    paidValue = float(msgContent)                                   # Ler o valor pago pelo cliente
+                ip, port = clientAddress
+                clientStringAddress = str(ip) + ":" + str(port)
+                clientTable     = getClientTable(clientStringAddress)
 
-                    ip, port = clientAddress
-                    clientStringAddress = str(ip) + ":" + str(port)
-                    clientTable     = getClientTable(clientStringAddress)
+                billValueClient = getClientBill(clientStringAddress)
+                billValueTable  = getTableBill(clientTable)                 # Ler o valor da conta do cliente e da mesa no JSON
+                isClientPaid    = False
+                isTablePaid     = False
 
-                    billValueClient = getClientBill(clientStringAddress)
-                    billValueTable  = getTableBill(clientTable)                 # Ler o valor da conta do cliente e da mesa no JSON
-                    isClientPaid    = False
-                    isTablePaid     = False
-
-                    if paidValue >= billValueClient:
-                        isClientPaid = True                   # Enviar mensagem que a conta foi paga
-                        payClientBill(clientStringAddress)    # Cliente paga somente a sua parte
-                        billValueTable -= billValueClient 
-                        
-                    paidValue -= billValueClient
-                                        
-                    if paidValue >= 0: 
-                        tableSize = getTableSize(clientTable) - 1
-                        discount = 0.0 if tableSize == 0 else (paidValue / tableSize)
-                        
-                    toSendData = json.dumps((msgType, (isClientPaid, isTablePaid)))
-                    requestQueue.append((toSendData, clientAddress))
+                if paidValue >= billValueClient:
+                    isClientPaid = True                   # Enviar mensagem que a conta foi paga
+                    payClientBill(clientStringAddress)    # Cliente paga somente a sua parte
+                    billValueTable -= billValueClient 
                     
-                case 6:         # LEVANTAR DA MESA
-                    #tem que checar se o cliente pagou a conta antes de pedir para se levantar
-                    ip, port = clientAddress
-                    deleteClient(str(ip) + ":" + str(port))
-                    toSendData = "Obrigado por vir ao CINtofome!"
-                    requestQueue.append((toSendData, clientAddress))
+                paidValue -= billValueClient
+                                    
+                if paidValue >= 0: 
+                    tableSize = getTableSize(clientTable) - 1
+                    discount = 0.0 if tableSize == 0 else (paidValue / tableSize)
+                    
+                toSendData = json.dumps((msgType, (isClientPaid, isTablePaid)))
+                requestQueue.append((toSendData, clientAddress))
+                
+            case 6:         # LEVANTAR DA MESA
+                #tem que checar se o cliente pagou a conta antes de pedir para se levantar
+                ip, port = clientAddress
+                deleteClient(str(ip) + ":" + str(port))
+                toSendData = "Obrigado por vir ao CINtofome!"
+                toSendData = json.dumps((msgType, toSendData))    
+                requestQueue.append((toSendData, clientAddress))
 
 def CINtofomeSender(serverSocket):
     global requestQueue
     while True:
-        while not requestQueue.empty():
+        while len(requestQueue) > 0:
             data, clientAddress = requestQueue[-1]
-            requestQueue.pop()
             dataSent = functions.transmissor(data, serverSocket, clientAddress)
+            requestQueue.pop()
+
+def startThreads():
+    thread_Receiver = threading.Thread(target = CINtofomeReceiver, args = (serverSocket,))
+    thread_Receiver.start()
+
+    thread_Sender = threading.Thread(target = CINtofomeSender, args = (serverSocket,))
+    thread_Sender.start()
+
+def main():
+    functions._print("Iniciando as threads...", "OUT")
+    startThreads()
+
+if __name__ == "__main__":
+    main()

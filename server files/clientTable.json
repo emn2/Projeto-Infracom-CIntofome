@@ -1,35 +1,13 @@
 {
     "clients": [
         {
-            "conta individual": 0.0,
+            "conta individual": 4.0,
             "mesa": 8,
             "name": "Edson",
-            "pedidos": [],
-            "socket": "128.65.27.104:5000"
-        },
-        {
-            "conta individual": 0.0,
-            "mesa": 8,
-            "name": "Lucas",
-            "pedidos": [],
-            "socket": "128.65.27.104:5001"
-        },
-        {
-            "conta individual": 0.0,
-            "mesa": 8,
-            "name": "Arthur",
-            "pedidos": [],
-            "socket": "128.65.27.104:5002"
-        },
-        {
-            "conta individual": 30.0,
-            "mesa": 0,
-            "name": "Teste",
             "pedidos": [
-                1,
-                1
+                2
             ],
-            "socket": "127.0.0.1:53069"
+            "socket": "192.168.0.117:59217"
         }
     ]
 }

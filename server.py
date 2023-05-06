@@ -4,8 +4,6 @@ import json
 import random
 import functions
 import os
-
-
     
 # Definir o endereco IP e a porta do servidor
 IP = socket.gethostbyname(socket.gethostname())
@@ -120,7 +118,7 @@ def showClientBill(pedidosDoCliente, billValueClient):  # testado e funcionando
 def showTableBill(pedidosDaMesa):                       # testado e funcionando
     totalMesa = 0.0
     for i in range(len(pedidosDaMesa)):
-        nome, pedidos = pedidosDaMesa[i]
+        nome, pedidos, contaIndividual = pedidosDaMesa[i]
         print("| {} |".format(nome)) 
         totalPessoa = 0.0
         for j in range(len(pedidos)):
@@ -129,9 +127,11 @@ def showTableBill(pedidosDaMesa):                       # testado e funcionando
             print("{} => R$ {}".format(item, price))
             totalPessoa += price
             
-        totalMesa += totalPessoa
+        totalMesa += contaIndividual
         print("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
         print("Total - R$ {}".format(totalPessoa))
+        print("Desconto - R$ {}".format(totalPessoa - contaIndividual))
+        print("Total a pagar - R$ {}".format(contaIndividual))
         print("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
         print()
 
@@ -148,7 +148,7 @@ def getClientBill(pedidosDoCliente):        # testado e funcionando
 def getTableBill(pedidosDaMesa):            # testado e funcionando
     total = 0.0
     for i in range(len(pedidosDaMesa)):
-        name, pedidos, contaIndividual = pedidosDaMesa[i]
+        _, _, contaIndividual = pedidosDaMesa[i]
         total += contaIndividual
     return total
 
@@ -158,6 +158,7 @@ def payClientBill(clientAddress):               # testado e funcionando
     for i in range(len(obj["clients"])):
         if obj["clients"][i]["socket"] == clientAddress:
             obj["clients"][i]["pedidos"] = []
+            obj["clients"][i]["conta individual"] = 0.0
             break
     
     open(tableFilename, "w").write(
@@ -213,7 +214,7 @@ def CINtofomeReceiver(serverSocket):
                 requestQueue.append((toSendData, clientAddress))
                 
             case 2:         # PEDIDO -> OK
-                toSendData = "Gostaria de mais algum item? (número)"
+                toSendData = "Gostaria de mais algum item? Caso sim, aperte 2 novamente"
                 toSendData = json.dumps((msgType, toSendData))                   
                 requestQueue.append((toSendData, clientAddress))
                 ip, port = clientAddress
@@ -247,10 +248,10 @@ def CINtofomeReceiver(serverSocket):
                 clientStringAddress = str(ip) + ":" + str(port)
                 clientTable     = getClientTable(clientStringAddress)
 
-                billValueClient = getClientBill(clientStringAddress)
-                billValueTable  = getTableBill(clientTable)                 # Ler o valor da conta do cliente e da mesa no JSON
-                isClientPaid    = False
-                isTablePaid     = False
+                billValueClient, _ = getClientOrders(clientStringAddress)
+                billValueTable     = getTableBill(getTableOrders(clientTable))                 # Ler o valor da conta do cliente e da mesa no JSON
+                isClientPaid       = False
+                isTablePaid        = False
 
                 if paidValue >= billValueClient:
                     isClientPaid = True                   # Enviar mensagem que a conta foi paga
@@ -258,19 +259,32 @@ def CINtofomeReceiver(serverSocket):
                     billValueTable -= billValueClient 
                     
                 paidValue -= billValueClient
+                print("sobrou {} reais".format(paidValue))
                                     
                 if paidValue >= 0: 
                     tableSize = getTableSize(clientTable) - 1
+                    print("tableSize = ", tableSize)
                     discount = 0.0 if tableSize == 0 else (paidValue / tableSize)
+                    applyDiscount(clientTable, clientStringAddress, discount)
                     
                 toSendData = json.dumps((msgType, (isClientPaid, isTablePaid)))
                 requestQueue.append((toSendData, clientAddress))
                 
             case 6:         # LEVANTAR DA MESA
                 #tem que checar se o cliente pagou a conta antes de pedir para se levantar
+                
                 ip, port = clientAddress
-                deleteClient(str(ip) + ":" + str(port))
-                toSendData = "Obrigado por vir ao CINtofome!"
+                clientStringAddress = str(ip) + ":" + str(port)
+
+                contaIndividual, _ = getClientOrders(clientStringAddress)
+
+                toSendData = ""
+                if contaIndividual <= 0.0:
+                    deleteClient(str(ip) + ":" + str(port))
+                    toSendData = "Obrigado por vir ao CINtofome!"
+                else:
+                    toSendData = "Pague a conta antes de sair!!"
+
                 toSendData = json.dumps((msgType, toSendData))    
                 requestQueue.append((toSendData, clientAddress))
 

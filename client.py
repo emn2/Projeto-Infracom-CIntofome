@@ -19,12 +19,13 @@ def run_client():
 
     nome = ""
     mesa = ""
+    functions._print("Digite 'chefia' para se identificar", "OUT")
     while True:
         msg = input()
         if msg == "chefia":
-            print("Qual eh o seu nome?")
+            print("Qual é o seu nome?")
             nome = input()
-            print("Qual eh sua mesa?")
+            print("Qual é sua mesa?")
             mesa = input()
             break
         else:
@@ -33,7 +34,6 @@ def run_client():
     mesa = int(mesa)
 
     toSendData = [0, nome, mesa, clientSocket.getsockname()[0] + ":" + str(clientSocket.getsockname()[1])]
-    print(toSendData)
     toSendData = json.dumps(toSendData)
 
     dataSent = functions.transmissor(toSendData, clientSocket, serverAddress)
@@ -52,7 +52,7 @@ def run_client():
                 print("----------Cardápio----------")
                 print("Codigo  ||  Comida || Preço")
                 for i in range(len(dataRcv[1])):
-                    print("{} - {} - R${}".format(dataRcv[1][i][0], dataRcv[1][i][1], dataRcv[1][i][2]))
+                    print("{:<1} - {:<20} - R${}".format(dataRcv[1][i][0], dataRcv[1][i][1], dataRcv[1][i][2]))
                     
             case 2:
                 toSendData = [2]

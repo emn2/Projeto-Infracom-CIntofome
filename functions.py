@@ -37,10 +37,12 @@ def _print(msg, tp = None):
     if tp != "OUT":
         return
     old_msg = msg
-    msg = msg[:62] + ("[..]" if len(old_msg) > 62 else "")
+    lim = 35
+    msg = msg[:lim] + ("[..]" if len(old_msg) > lim else "")
     msg = msg[0].upper() + msg[1:]
-    print("[{}]: \t {:<63}".format(next(print_generator), msg), end = "")
-    print("\t({})".format(datetime.datetime.now().strftime("%H:%M:%S")), end = " - ")
+    print("[{}]: \t {:<35}".format(next(print_generator), msg), end = "")
+    print("\t({})".format(datetime.datetime.now().strftime("%H:%M:%S")))
+    return
     if not tp:
         print("{:<3}".format("OK"))
     else:

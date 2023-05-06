@@ -23,6 +23,7 @@ tableFilename = os.path.join(filesFolder, filename)
 
 # Fila com requests
 requestQueue = []
+requestLock = threading.Lock()
 
 # Lista com o Cardapio
 menuList = [(0, "Brigadeiro", 1.50),
@@ -32,7 +33,8 @@ menuList = [(0, "Brigadeiro", 1.50),
             (4, "Palha Italiana", 4.00),
             (5, "Agua Voss Sem Gas", 59.90)]
 
-functions._print("CInToFome Server is running on IP: {} and PORT: {}".format(IP, PORT), "OUT")
+functions._print("CInToFome Server iniciado.", "OUT")
+functions._print("IP: {}, PORT: {}".format(IP, PORT), "OUT")
 
 def addClient(new_client, clientSocket):  # Adiciona cliente // testado e funcionando
     new_client = {
@@ -185,20 +187,23 @@ def applyDiscount(numberTable, clientAddress, discount): # Pega a quantidade de 
     )
 
 def readMessage(data):
-    print("Recebido: ", data)
     data = json.loads(data)
     return data[0], data[1:]
 
 def CINtofomeReceiver(serverSocket):
     global requestQueue
-    
+    global requestLock
     while True:
-        while len(requestQueue) > 0:
+        while len(requestQueue) != 0:
             continue
+        requestLock.acquire()
         dataRcv, clientAddress = functions.receptor(serverSocket)
-        msgType, msgContent = readMessage(dataRcv)   
+        msgType, msgContent = readMessage(dataRcv)  
+        functions._print("Mensagem do tipo {} recebida.".format(msgType), "OUT") 
+        requestLock.release()
         match msgType:
             case 0:         # CHEFIA -> OK
+                
                 addClient(msgContent, str(clientAddress[0]) + ":" + str(clientAddress[1]))   # Adiciona o cliente na tabela de clientes.
                 toSendData = """Bem vindo ao restaurante, o que deseja fazer?\n
                               1 - Ver cardápio.\n
@@ -259,7 +264,7 @@ def CINtofomeReceiver(serverSocket):
                     billValueTable -= billValueClient 
                     
                 paidValue -= billValueClient
-                print("sobrou {} reais".format(paidValue))
+                print("Sobraram {} reais".format(paidValue))
                                     
                 if paidValue >= 0: 
                     tableSize = getTableSize(clientTable) - 1
@@ -287,16 +292,22 @@ def CINtofomeReceiver(serverSocket):
 
                 toSendData = json.dumps((msgType, toSendData))    
                 requestQueue.append((toSendData, clientAddress))
-
+        
+    
 def CINtofomeSender(serverSocket):
     global requestQueue
+    global requestLock
     while True:
         while len(requestQueue) > 0:
+            requestLock.acquire()
+            functions._print("Enviando mensagem...", "OUT")
             data, clientAddress = requestQueue[-1]
             dataSent = functions.transmissor(data, serverSocket, clientAddress)
             requestQueue.pop()
+            requestLock.release()
 
 def startThreads():
+
     thread_Receiver = threading.Thread(target = CINtofomeReceiver, args = (serverSocket,))
     thread_Receiver.start()
 

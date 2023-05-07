@@ -82,6 +82,7 @@ def run_client():
 
             case 5:
                 toSendData = [5]
+                
                 valor = float(input("Digite o valor a ser pago: "))
                 toSendData.append(valor)
                 toSendData = json.dumps(toSendData)

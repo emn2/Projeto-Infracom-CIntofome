@@ -1,13 +1,23 @@
 {
     "clients": [
         {
-            "conta individual": 4.0,
-            "mesa": 8,
-            "name": "Edson",
+            "conta individual": 60.800000000000004,
+            "mesa": 2,
+            "name": "Davi",
             "pedidos": [
-                2
+                3,
+                5
             ],
-            "socket": "192.168.0.117:59217"
+            "socket": "127.0.0.1:53109"
+        },
+        {
+            "conta individual": 15.0,
+            "mesa": 2,
+            "name": "lucas",
+            "pedidos": [
+                1
+            ],
+            "socket": "127.0.0.1:49363"
         }
     ]
 }

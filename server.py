@@ -9,7 +9,7 @@ import os
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8000
 
-# Cria o socket do servidor, o primeiro campo informa que a comunicaçãoo é pelo IP e o segundo campo informa o tipo do socket (UDP)
+# Cria o socket do servidor, o primeiro campo informa que a comunicacao eh pelo IP e o segundo campo informa o tipo do socket (UDP)
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Associar o socket ao endereco e a porta do servidor definidos anteriormente
@@ -202,7 +202,7 @@ def CINtofomeReceiver(serverSocket):
         functions._print("Mensagem do tipo {} recebida.".format(msgType), "OUT") 
         requestLock.release()
         match msgType:
-            case 0:         # CHEFIA -> OK
+            case 0:         # CHEFIA
                 
                 addClient(msgContent, str(clientAddress[0]) + ":" + str(clientAddress[1]))   # Adiciona o cliente na tabela de clientes.
                 toSendData = """Bem vindo ao restaurante, o que deseja fazer?\n
@@ -218,7 +218,7 @@ def CINtofomeReceiver(serverSocket):
                 toSendData = json.dumps((msgType, menuList))                    # Cliente : Usar loads para transformar em lista
                 requestQueue.append((toSendData, clientAddress))
                 
-            case 2:         # PEDIDO -> OK
+            case 2:         # PEDIDO 
                 toSendData = "Gostaria de mais algum item? Caso sim, aperte 2 novamente"
                 toSendData = json.dumps((msgType, toSendData))                   
                 requestQueue.append((toSendData, clientAddress))

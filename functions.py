@@ -71,18 +71,16 @@ def calculate_checksum(data):  # Form the standard IP-suite checksum
     
     result = result >> 8 | ((result & 0xff) << 8)   # Swap bytes
     #print(result >> 8, result & 0xff)
-    # print(bin(result >> 8), bin(result & 0xff))
+    #print(bin(result >> 8), bin(result & 0xff))
     #print(bin(result))
     #return result
-    #TODO
     return "00"
 
 
 # ---------------------- Funções de Ajuda ---------------------- #
 
 # Retorna True se o pacote estiver corrompido.
-def is_corrupt(data):
-    # TODO
+def is_corrupt(data): 
     # checksum, seq_num, new_data = decodify(data)
     # new_data = seq_num + new_data
     return False
